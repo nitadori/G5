@@ -1,0 +1,33 @@
+#CC = gcc
+CC = gcc-4.8.1 -march=core-avx2
+#CFLAGS = -O3 -ffast-math -funroll-loops -Wall -DN128
+CFLAGS = -O2 -Wall -DN128
+CFLAGS += -ffast-math -funroll-loops
+OBJS = gravity_avx2.o phantom_g5.o pg5_table.o
+
+all: asm libpg5.a 
+#all: $(OBJS)
+
+asm: gravity_avx2.s
+
+clean:
+	rm *.o *.s *.a *.swp a.out -f
+
+distclean: clean
+	rm -f *~
+
+.s.o:
+	$(CC) $(CFLAGS) -c $^
+
+.c.s:
+	$(CC) $(CFLAGS) -S $^
+
+libpg5.a: $(OBJS)
+	ar -r $@ $^
+	ranlib $@
+#	make -C test
+
+benchmark: libpg5.a
+	cp libpg5.a ../direct	
+	make -C ../direct direct
+	../direct/direct ../direct/pl2k out2k.avx2
